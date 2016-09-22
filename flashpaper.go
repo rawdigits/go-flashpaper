@@ -32,6 +32,13 @@ type secret struct {
 	Name string `json:"name"`
 }
 
+//Clear the actual bytes in memory .. hopefully.
+func (s *secret) Wipe() {
+	for i, _ := range s.Data {
+		s.Data[i] = 0
+	}
+}
+
 func NewSecret() *secret {
 	id, err := randPathString()
 	if err != nil {
@@ -70,6 +77,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			sec, ok := popSecret(secrets, path)
 			if ok {
+				defer sec.Wipe()
 				//If this is a file, set to octet-stream to force download
 				//Otherwise just print the data
 				if sec.Type == "file" {
@@ -134,7 +142,7 @@ func shareable(id string, w http.ResponseWriter, r *http.Request) {
 	if r.TLS == nil {
 		proto = "http"
 	}
-	ret := fmt.Sprintf(lackofstyle+shareform+endofstyle, proto, r.Host, id)
+	ret := fmt.Sprintf(lackofstyle+shareform+endofstyle, proto, r.Host, id, MAXHOURSTOKEEP)
 	fmt.Fprintf(w, ret)
 }
 
@@ -150,8 +158,9 @@ func randPathString() (string, error) {
 }
 
 func popSecret(secrets smap, sec string) (secret, bool) {
-	//It is important to use the mutex here, otherwise a race condition could lead to the ability to read the secret twice.
-	//This would defeat the who purpose of flashpaper...
+	//It is important to use the mutex here, otherwise a race condition
+	//could lead to the ability to read the secret twice.
+	//This would defeat the whole purpose of flashpaper...
 	mu.Lock()
 	defer mu.Unlock()
 	val, ok := secrets[sec]
@@ -169,7 +178,8 @@ func janitor(secrets smap) {
 		for k, v := range secrets {
 			duration := time.Since(v.time)
 			if duration.Hours() > MAXHOURSTOKEEP {
-				popSecret(secrets, k)
+				sec, _ := popSecret(secrets, k)
+				sec.Wipe()
 			}
 		}
 		//Sleep one second
@@ -245,7 +255,7 @@ const inputfileform = `
 const shareform = `
 share this link (do not click!):<br><br>
 <h2>%s://%s/%s</h2>
-<br><br>THIS LINK WILL EXPIRE IN 24 HOURS<br><br>
+<br><br>THIS LINK WILL EXPIRE IN %f HOURS<br><br>
 <a href="/">Share Another Secret</a>
 `
 
