@@ -20,7 +20,7 @@ It is a web service that allows you to upload text snippets or files and generat
 
 Q: *How do I configure it?*
 
-A: You don't. Everything is hardcoded because configuration is the devil. The service needs a the files `server.crt` and `server.key` in its working directory to start. The port it runs on is 8443.
+A: You don't. Everything is hardcoded because configuration is the devil. The service needs the files `server.crt` and `server.key` in its working directory to start. The port it runs on is 8443.
 
 Q: *Should I run this on (cloud provider x)?*
 
