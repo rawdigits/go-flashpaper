@@ -8,13 +8,14 @@ It is a web service that allows you to upload text snippets or files and generat
 ## Installation
 
 0. Get a server. Preferably one you run yourself. Preferably patched. Install go (the language).
-1. Clone this here repo: `git clone git@github.com:rawdigits/go-flashpaper.git`
-2. Build go-flashpaper: `cd go-flashpaper; go build`
-3. Get ahold of a TLS certificate. go-flashpaper requires TLS, because we are not savages.
-4. Save the certificate and private key in the same directory as go-flashpaper. Name them `server.crt` and `server.key`, respectively
-5. Run go-flashpaper: `./go-flashpaper`
-6. Connect to the web service via `https://yourserver.example.com:8443` (note: 8443 is the default port, so no one has an excuse to run this as root)
-7. Share secret things.
+1. Disable swap on the server so you don't write secrets to disk.
+2. Clone this here repo: `git clone git@github.com:rawdigits/go-flashpaper.git`
+3. Build go-flashpaper: `cd go-flashpaper; go build`
+4. Get ahold of a TLS certificate. go-flashpaper requires TLS, because we are not savages.
+5. Save the certificate and private key in the same directory as go-flashpaper. Name them `server.crt` and `server.key`, respectively
+6. Run go-flashpaper: `./go-flashpaper`
+7. Connect to the web service via `https://yourserver.example.com:8443` (note: 8443 is the default port, so no one has an excuse to run this as root)
+8. Share secret things.
  
 ## FAQ
 
