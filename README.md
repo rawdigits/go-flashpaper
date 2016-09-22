@@ -42,24 +42,24 @@ A: Because. Also it never will.
 
 ### Example 1
 
-*Alice*: Hi Bob, I just set your new linux account with a random password. The password is available here: `https://seekret.example.com:8443/de818e28daa568cb433b39da292b589bdcbc1bc771d52cffe453b0e01e93865b` Please log in and change your password immediately.
+**Alice**: Hi Bob, I just set your new linux account with a random password. The password is available here: `https://seekret.example.com:8443/de818e28daa568cb433b39da292b589bdcbc1bc771d52cffe453b0e01e93865b` Please log in and change your password immediately.
 
-*Bob*: Thanks, I logged in with that password and changed my password!
+**Bob**: Thanks, I logged in with that password and changed my password!
 
 ### Example 2
 
-*Alice*: Hi Bob, I just set your new linux account with a random password. The password is available here: `https://seekret.example.com:8443/de818e28daa568cb433b39da292b589bdcbc1bc771d52cffe453b0e01e93865b` Please log in and change your password immediately.
+**Alice**: Hi Bob, I just set your new linux account with a random password. The password is available here: `https://seekret.example.com:8443/de818e28daa568cb433b39da292b589bdcbc1bc771d52cffe453b0e01e93865b` Please log in and change your password immediately.
 
-*Bob*: Hmmm, that link didn't work.
+**Bob**: Hmmm, that link didn't work.
 
-*Alice*: It hasn't been 24 hours, so someone may have intercepted it. I'll delete that account and create a new one. Then I'll send you another link by carrier pigeon.
+**Alice**: It hasn't been 24 hours, so someone may have intercepted it. I'll delete that account and create a new one. Then I'll send you another link by carrier pigeon.
 
-*Bob*: Perfect, thanks!
+**Bob**: Perfect, thanks!
 
 ### Example 3
 
-*Alice*: Hi Bob, I have that document on our new security infrastructure plans. Go here to download it: `https://seekret.example.com/de818e28daa568cb433b39da292b589bdcbc1bc771d52cffe453b0e01e93865b`
+**Alice**: Hi Bob, I have that document on our new security infrastructure plans. Go here to download it: `https://seekret.example.com/de818e28daa568cb433b39da292b589bdcbc1bc771d52cffe453b0e01e93865b`
 
-*Bob*: Yay!
+**Bob**: Yay!
 
 ## Have a nice day!
