@@ -11,6 +11,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
@@ -98,17 +100,29 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 		//If randomString() collides, sorry...?
 		switch path {
 		case "add":
-			for k, v := range r.Form {
-				if k == "secret" {
-					v := strings.Join(v, "")
+			secretData := strings.Join(r.Form["secret"], "")
+			if len(secretData) == 0 {
+				fmt.Fprintf(w, "no secret provided.")
+			}
+
+			shareType := r.Form.Get("sharetype")
+			switch {
+			case shareType == "email":
+				recipients := strings.Split(r.Form.Get("recipients"), ",")
+				for _, address := range recipients {
 					secret := NewSecret()
 					secrets[secret.Id] = secret
-					secrets[secret.Id].Data = []byte(v)
-
-					shareable(secret.Id, w, r)
-				} else {
-					fmt.Fprintf(w, "no secret provided.")
+					secrets[secret.Id].Data = []byte(secretData)
+					mailSecret(address, secret, r)
 				}
+				mailed(recipients, w, r)
+			case shareType == "link":
+				secret := NewSecret()
+				secrets[secret.Id] = secret
+				secrets[secret.Id].Data = []byte(secretData)
+				shareable(secret.Id, w, r)
+			default:
+				fmt.Fprintf(w, "pick a share type.")
 			}
 		case "addfile":
 			f, h, _ := r.FormFile("file")
@@ -122,17 +136,74 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(w, lackofstyle+uploaderror+endofstyle)
 				return
 			}
-			secret := NewSecret()
-			secrets[secret.Id] = secret
-			secrets[secret.Id].Type = "file"
-			secrets[secret.Id].Data = d.Bytes()
-			secrets[secret.Id].Name = h.Filename
 
-			shareable(secret.Id, w, r)
+			shareType := r.Form.Get("sharetype")
+			switch {
+			case shareType == "email":
+				recipients := strings.Split(r.Form.Get("recipients"), ",")
+				for _, address := range recipients {
+					secret := NewSecret()
+					secrets[secret.Id] = secret
+					secrets[secret.Id].Type = "file"
+					secrets[secret.Id].Data = d.Bytes()
+					secrets[secret.Id].Name = h.Filename
+					mailSecret(address, secret, r)
+				}
+				mailed(recipients, w, r)
+			case shareType == "link":
+				secret := NewSecret()
+				secrets[secret.Id] = secret
+				secrets[secret.Id].Type = "file"
+				secrets[secret.Id].Data = d.Bytes()
+				secrets[secret.Id].Name = h.Filename
+				shareable(secret.Id, w, r)
+			default:
+				fmt.Fprintf(w, "pick a share type.")
+			}
+
 		}
 	default:
 		http.NotFound(w, r)
 	}
+}
+
+func mailSecret(address string, s *secret, r *http.Request) {
+	msg := "From: flashpaper-noreply@" + r.Host + "\n"
+	msg += "To: " + address + "\n"
+	msg += "Subject: Secret for you! (Expires in %f hours)\n"
+	msg += link(s, r)
+	msg += "\n.\n"
+	sendmail := exec.Command("/usr/sbin/sendmail", "-t")
+	stdin, err := sendmail.StdinPipe()
+	defer stdin.Close()
+
+	if err != nil {
+		log.Printf("couldn't attach to sendmail stdin: %s", err)
+	}
+	sendmail.Stdout = os.Stdout
+	sendmail.Stderr = os.Stderr
+	err = sendmail.Start()
+	if err != nil {
+		log.Printf("couldn't launch sendmail: %s", err)
+	} else {
+		io.WriteString(stdin, msg)
+	}
+}
+
+func mailed(recipients []string, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	ret := fmt.Sprintf(lackofstyle+mailedform+endofstyle, strings.Join(recipients, ", "), MAXHOURSTOKEEP)
+	fmt.Fprintf(w, ret)
+}
+
+func link(s *secret, r *http.Request) string {
+	proto := "https"
+	if r.TLS == nil {
+		proto = "http"
+	}
+
+	return fmt.Sprintf("%s://%s/%s", proto, r.Host, s.Id)
 }
 
 func shareable(id string, w http.ResponseWriter, r *http.Request) {
@@ -223,6 +294,7 @@ const lackofstyle = `
 <html><head></head>
 <style>
 * { font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+input[value=email]:not(:checked) ~ textarea[name=recipients] { visibility: hidden; }
 </style>
 <body><br>
 <div style="text-align:center; top: 25px;">
@@ -239,7 +311,12 @@ const index = `
 const inputtextform = `
 <form action="/add" method="POST">
 <textarea name="secret" rows="20" cols="80"></textarea>
-<br>
+<br><br>
+<input type="radio" name="sharetype" value="link" checked>Get Link</option>
+<input type="radio" name="sharetype" value="email">Send Email</option>
+<br><br>
+<textarea name="recipients" rows="2" cols="80" placeholder="alice@aol.com,bob@aol.com..."></textarea>
+<br><br>
 <input type=submit>
 </form>
 `
@@ -248,6 +325,11 @@ const inputfileform = `
 <form action="/addfile" method="POST" enctype="multipart/form-data">
 <!-- <label for="file">Filename: </label><br> -->
 <input type="file" name="file" id="file">
+<input type="radio" name="sharetype" value="link" checked>Get Link</option>
+<input type="radio" name="sharetype" value="email">Send Email</option>
+<br><br>
+<textarea name="recipients" rows="2" cols="80" placeholder="alice@aol.com,bob@aol.com..."></textarea>
+<br><br>
 <input type=submit>
 </form>
 `
@@ -256,6 +338,13 @@ const shareform = `
 share this link (do not click!):<br><br>
 <h2>%s://%s/%s</h2>
 <br><br>THIS LINK WILL EXPIRE IN %f HOURS<br><br>
+<a href="/">Share Another Secret</a>
+`
+
+const mailedform = `
+mailed a unique one-time access link to:<br><br>
+<h3>%s</h3>
+<br><br>EACH LINK WILL EXPIRE IN %f HOURS<br><br>
 <a href="/">Share Another Secret</a>
 `
 
