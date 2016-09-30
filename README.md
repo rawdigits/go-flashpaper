@@ -39,6 +39,10 @@ Q: *Why doesn't it have (feature x)?*
 
 A: Because. Also it never will.
 
+Q: *Why is mail not being delivered?*
+
+A: You might have outbound firewall rules on the host where this is deployed that prevent `sendmail` from doing its job. You could have deployed this on a host that somehow got really bad sender reputation. Or your `sendmail` is broken somehow (unlikely.)
+
 ## What are some examples of using this?
 
 ### Example 1
@@ -63,4 +67,13 @@ A: Because. Also it never will.
 
 **Bob**: Yay!
 
+### Example 4
+
+**Alice**: Hi team, here is the new shared Photobucket password. Check your inboxes for the link to see it!
+
+**Bob**: Yay!
+
+**Carol**: Yay!
+
+**Dave**: I hope we don't get banned again.
 ## Have a nice day!
