@@ -1,9 +1,7 @@
 FROM golang:1.7.1-onbuild
 MAINTAINER Jimmy Mesta "jimmy.mesta@gmail.com"
 
-RUN wget https://dl.eff.org/certbot-auto -P /usr/local/sbin && \
-    chmod a+x /usr/local/sbin/certbot-auto && \
-    git clone https://github.com/rawdigits/go-flashpaper
+RUN git clone https://github.com/rawdigits/go-flashpaper
 
 WORKDIR go-flashpaper
 RUN go build
