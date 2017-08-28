@@ -1,6 +1,8 @@
-FROM golang-1.7 AS build
+FROM golang AS build
 
-COPY *.go ./
+RUN mkdir -p /usr/go/go-flashpaper
+WORKDIR /usr/go/go-flashpaper
+COPY *.go .
 
 RUN openssl req \
     -new \
@@ -9,14 +11,14 @@ RUN openssl req \
     -nodes \
     -x509 \
     -subj "/C=US/ST=Denial/L=DockerLand/O=Dis/CN=www.flashpaper.com" \
-    -keyout /go/src/app/go-flashpaper/server.key \
-    -out /go/src/app/go-flashpaper/server.crt
+    -keyout ./server.key \
+    -out ./server.crt
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo
 FROM alpine
-WORKDIR /
-COPY --from=build /go/src/github.com/Invoca/flashpaper-go/flashpaper-go .
+WORKDIR /usr/go/go-flashpaper
+CMD /bin/sh
+COPY --from=build go-flashpaper .
 
 EXPOSE 8443
-
 CMD ["./go-flashpaper"]
