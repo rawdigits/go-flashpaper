@@ -4,8 +4,10 @@ go:
 sudo: required
 dist: trusty
 
-services:
-  - docker
+addons:
+  apt:
+    packages:
+      - docker-ce
 
 script:
   - docker build -f Dockerfile -t invoca/flashpaper .
