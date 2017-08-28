@@ -1,4 +1,4 @@
-FROM golang AS build
+FROM golang:1.7.1 AS build
 
 WORKDIR /go/src/github.com/Invoca/go-flashpaper
 COPY *.go .

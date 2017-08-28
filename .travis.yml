@@ -1,0 +1,22 @@
+language: go
+go:
+  - 1.7.1
+sudo: required
+dist: trusty
+
+services:
+  - docker
+
+before install:
+
+script:
+ - make
+
+after_success:
+  - export REPO=Invoca/flashpaper
+  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+      docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+      docker build -f Dockerfile -t $REPO . ;
+      docker push Invoca/flashpaper;
+      fi
