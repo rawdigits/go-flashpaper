@@ -1,9 +1,6 @@
-FROM golang:1.7.1-onbuild
+FROM golang-1.7 AS build
 
-RUN git clone https://github.com/Invoca/go-flashpaper
-
-WORKDIR go-flashpaper
-RUN go build
+COPY *.go ./
 
 RUN openssl req \
     -new \
@@ -15,6 +12,11 @@ RUN openssl req \
     -keyout /go/src/app/go-flashpaper/server.key \
     -out /go/src/app/go-flashpaper/server.crt
 
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo
+FROM alpine
+WORKDIR /
+COPY --from=build /go/src/github.com/Invoca/flashpaper-go/flashpaper-go .
+
 EXPOSE 8443
 
-ENTRYPOINT ["./go-flashpaper"]
+CMD ["./go-flashpaper"]
