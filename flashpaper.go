@@ -150,7 +150,7 @@ func shareable(id string, w http.ResponseWriter, r *http.Request) {
 func randPathString() (string, error) {
 	rb := make([]byte, 32)
 	_, err := rand.Read(rb)
-	s := fmt.Sprintf("%x", rb)
+	s := "share/" + fmt.Sprintf("%x", rb)
 	if err == nil {
 		return s, nil
 	}
