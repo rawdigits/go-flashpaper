@@ -10,7 +10,7 @@ services:
 before install:
 
 script:
- - make
+ - echo "Maybe running somekind of test would be good here."
 
 after_success:
   - export REPO=Invoca/flashpaper
