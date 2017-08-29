@@ -10,7 +10,7 @@ addons:
       - docker-ce
 
 script:
-  - docker build -f Dockerfile -t invoca/flashpaper .
+  - docker build -f Dockerfile -t invocaops/flashpaper .
 
 after_success:
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
