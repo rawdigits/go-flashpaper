@@ -1,4 +1,4 @@
-# go-flashpaper ![Coverage Status](https://travis-ci.org/Invoca/go-flashpaper.svg?branch=master)
+# go-flashpaper [![Build Status](https://travis-ci.org/Invoca/go-flashpaper.svg?branch=master)](https://travis-ci.org/Invoca/go-flashpaper)
 Go-flashpaper is a simple go-based service for creating one time use links to text data or individual files.
 
 ## What even is this?
