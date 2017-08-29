@@ -1,20 +1,16 @@
-FROM golang:1.7.1-onbuild
+FROM golang:1.7 AS build
 
-RUN git clone https://github.com/Invoca/go-flashpaper
+WORKDIR /go/src/github.com/Invoca/go-flashpaper
+COPY *.go .
 
-WORKDIR go-flashpaper
-RUN go build
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo
 
-RUN openssl req \
-    -new \
-    -newkey rsa:4096 \
-    -days 365 \
-    -nodes \
-    -x509 \
-    -subj "/C=US/ST=Denial/L=DockerLand/O=Dis/CN=www.flashpaper.com" \
-    -keyout /go/src/app/go-flashpaper/server.key \
-    -out /go/src/app/go-flashpaper/server.crt
+FROM alpine
+WORKDIR /
+RUN apk update && apk add openssl
+
+COPY --from=build /go/src/github.com/Invoca/go-flashpaper/go-flashpaper .
+COPY ./entrypoint.sh .
 
 EXPOSE 8443
-
-ENTRYPOINT ["./go-flashpaper"]
+ENTRYPOINT ["./entrypoint.sh"]
