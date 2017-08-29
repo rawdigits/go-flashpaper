@@ -10,7 +10,14 @@ addons:
       - docker-ce
 
 before_script:
-  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
+  - export TAG=`
+if [ "$TRAVIS_BRANCH" == "master" ] && [ -z "$TRAVIS_PULL_REQUEST_BRANCH" ]; then
+  echo "latest";
+elif [ "$TRAVIS_PULL_REQUEST_BRANCH" ]; then
+  echo "$TRAVIS_PULL_REQUEST_BRANCH";
+else
+  echo "$TRAVIS_BRANCH";
+fi`
 
 script:
   - docker build -f Dockerfile -t invocaops/flashpaper:$TAG .
