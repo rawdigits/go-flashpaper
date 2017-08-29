@@ -1,4 +1,4 @@
-# go-flashpaper
+# go-flashpaper [![Build Status](https://travis-ci.org/Invoca/go-flashpaper.svg?branch=master)](https://travis-ci.org/Invoca/go-flashpaper)
 Go-flashpaper is a simple go-based service for creating one time use links to text data or individual files.
 
 ## What even is this?
@@ -16,7 +16,9 @@ It is a web service that allows you to upload text snippets or files and generat
 6. Run go-flashpaper: `./go-flashpaper`
 7. Connect to the web service via `https://yourserver.example.com:8443` (note: 8443 is the default port, so no one has an excuse to run this as root)
 8. Share secret things.
- 
+
+A. Alternatively, get just run the command `docker run --rm -p 8443:8443 invocaops/flashpaper`.
+
 ## FAQ
 
 Q: *How do I configure it?*
