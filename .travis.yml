@@ -1,6 +1,6 @@
 language: go
 go:
-  - 1.7.1
+  - 1.7
 sudo: required
 dist: trusty
 
@@ -9,10 +9,12 @@ addons:
     packages:
       - docker-ce
 
+before_script:
+  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ] && [ -z "$TRAVIS_PULL_REQUEST_BRANCH" ]; then echo "latest"; elif [ "$TRAVIS_PULL_REQUEST_BRANCH" ]; then echo "$TRAVIS_PULL_REQUEST_BRANCH"; else echo "$TRAVIS_BRANCH"; fi`
+
 script:
-  - docker build -f Dockerfile -t invocaops/flashpaper .
+  - docker build -f Dockerfile -t invocaops/flashpaper:$TAG .
 
 after_success:
-  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
   - docker push invocaops/flashpaper:$TAG;
