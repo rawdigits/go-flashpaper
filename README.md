@@ -17,6 +17,8 @@ It is a web service that allows you to upload text snippets or files and generat
 7. Connect to the web service via `https://yourserver.example.com:8443` (note: 8443 is the default port, so no one has an excuse to run this as root)
 8. Share secret things.
 
+A. Alternatively, get just run the command `docker run --rm -p 8443:8443 invocaops/flashpaper`.
+
 ## FAQ
 
 Q: *How do I configure it?*
