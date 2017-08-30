@@ -17,6 +17,8 @@ It is a web service that allows you to upload text snippets or files and generat
 7. Connect to the web service via `https://yourserver.example.com:8443` (note: 8443 is the default port, so no one has an excuse to run this as root)
 8. Share secret things.
 
+### Recommend Method
+
 A. Alternatively, just run the command `docker pull invocaops/flashpaper`.
 B. Then run `docker pull --rm -p 8443:8443 invocaops/flashpaper`.
 
@@ -37,6 +39,10 @@ A: Probably not. It is susceptible to Denial of Service by simply uploading a lo
 Q: *Why do you limit uploads to 10mb?*
 
 A: Because everything is kept in memory and we ain't made of money.
+
+Q: *Why is Docker the recommended Installation Method?*
+
+A: Configuration is the devil.
 
 Q: *Why doesn't it have (feature x)?*
 
