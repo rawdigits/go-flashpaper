@@ -20,6 +20,8 @@ It is a web service that allows you to upload text snippets or files and generat
 ### Recommend Method
 
 A. Alternatively, just run the command `docker pull invocaops/flashpaper`.
+
+
 B. Then run `docker pull --rm -p 8443:8443 invocaops/flashpaper`.
 
 ## FAQ
