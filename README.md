@@ -1,4 +1,4 @@
-# go-flashpaper
+# go-flashpaper [![Build Status](https://travis-ci.org/Invoca/go-flashpaper.svg?branch=master)](https://travis-ci.org/Invoca/go-flashpaper)
 Go-flashpaper is a simple go-based service for creating one time use links to text data or individual files.
 
 ## What even is this?
@@ -16,12 +16,19 @@ It is a web service that allows you to upload text snippets or files and generat
 6. Run go-flashpaper: `./go-flashpaper`
 7. Connect to the web service via `https://yourserver.example.com:8443` (note: 8443 is the default port, so no one has an excuse to run this as root)
 8. Share secret things.
- 
+
+### Recommend Method
+
+A. Alternatively, just run the command `docker pull invocaops/flashpaper`.
+
+
+B. Then run `docker pull --rm -p 8443:8443 invocaops/flashpaper`.
+
 ## FAQ
 
 Q: *How do I configure it?*
 
-A: You don't. Everything is hardcoded because configuration is the devil. The service needs the files `server.crt` and `server.key` in its working directory to start. The port it runs on is 8443.
+A: You don't. Everything is hardcoded because configuration is the devil. The service needs the files `server.crt` and `server.key` in its working directory to start. The port it runs on is 8443. Or just run the Docker container.
 
 Q: *Should I run this on (cloud provider x)?*
 
@@ -34,6 +41,10 @@ A: Probably not. It is susceptible to Denial of Service by simply uploading a lo
 Q: *Why do you limit uploads to 10mb?*
 
 A: Because everything is kept in memory and we ain't made of money.
+
+Q: *Why is Docker the recommended Installation Method?*
+
+A: Configuration is the devil.
 
 Q: *Why doesn't it have (feature x)?*
 
