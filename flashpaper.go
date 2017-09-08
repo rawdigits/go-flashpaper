@@ -55,92 +55,94 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path[1:]
 	r.ParseForm()
 	isShare, _ := regexp.MatchString("^share/", path)
+	isRoot, _ := regexp.MatchString("^$", path)
+	isAdd, _ := regexp.MatchString("^add$", path)
+	isAddfile, _ := regexp.MatchString("^addfile$", path)
+	isFavicon, _ := regexp.MatchString("^favicon.ico$", path)
+
 	//prevent slackbot from exploding links when posted to a channel
 	if strings.Contains(r.UserAgent(), "Slack") {
 		http.NotFound(w, r)
 		return
 	}
-	if isShare {
-		newPath := path[6:len(path)]
-		sec, ok := popSecret(secrets, newPath)
-		if ok {
-			defer sec.Wipe()
-			//If this is a file, set to octet-stream to force download
-			//Otherwise just print the data
-			if sec.Type == "file" {
-				w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", sec.Name))
-				w.Header().Set("Content-Type", "application/octet-stream")
-				w.Write(sec.Data)
+	switch r.Method {
+	case "GET":
+		switch {
+		case isShare:
+			newPath := path[6:len(path)]
+			sec, ok := popSecret(secrets, newPath)
+			if ok {
+				defer sec.Wipe()
+				//If this is a file, set to octet-stream to force download
+				//Otherwise just print the data
+				if sec.Type == "file" {
+					w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", sec.Name))
+					w.Header().Set("Content-Type", "application/octet-stream")
+					w.Write(sec.Data)
+				} else {
+					fmt.Fprintf(w, "%s", sec.Data)
+				}
 			} else {
-				fmt.Fprintf(w, "%s", sec.Data)
+				http.NotFound(w, r)
+				fmt.Fprintf(w, "You are likely to be eaten by a grue")
 			}
-		} else {
-			http.NotFound(w, r)
-			fmt.Fprintf(w, "You are likely to be eaten by a grue")
-		}
-	} else {
-		switch r.Method {
-		case "GET":
-			switch path {
-			case "favicon.ico":
-				return
-			case "":
-				w.Header().Set("Content-Type", "text/html")
-				fmt.Fprintf(w, lackofstyle+index+endofstyle)
-			case "add":
-				w.Header().Set("Content-Type", "text/html")
-				fmt.Fprintf(w, lackofstyle+inputtextform+endofstyle)
-			case "addfile":
-				w.Header().Set("Content-Type", "text/html")
-				fmt.Fprintf(w, lackofstyle+inputfileform+endofstyle)
-			default:
-				{
-					fmt.Printf("Default path...")
-					http.NotFound(w, r)
-					fmt.Fprintf(w, "You are likely to be eaten by a grue")
-				}
-			}
-
-		case "POST":
-			//I could lock on adding things to the map, but i'm not gonna.
-			//If randomString() collides, sorry...?
-			switch path {
-			case "add":
-				for k, v := range r.Form {
-					if k == "secret" {
-						v := strings.Join(v, "")
-						secret := NewSecret()
-						secrets[secret.Id] = secret
-						secrets[secret.Id].Data = []byte(v)
-
-						shareable(secret.Id, w, r)
-					} else {
-						fmt.Fprintf(w, "no secret provided.")
-					}
-				}
-			case "addfile":
-				f, h, _ := r.FormFile("file")
-				defer f.Close()
-				d := new(bytes.Buffer)
-
-				//Limit the size of uploads. We aren't made of money.
-				mb := http.MaxBytesReader(w, f, MAXUPLOADSIZE)
-				_, err := io.Copy(d, mb)
-				if err != nil {
-					fmt.Fprintf(w, lackofstyle+uploaderror+endofstyle)
-					return
-				}
-				secret := NewSecret()
-				secrets[secret.Id] = secret
-				secrets[secret.Id].Type = "file"
-				secrets[secret.Id].Data = d.Bytes()
-				secrets[secret.Id].Name = h.Filename
-
-				shareable(secret.Id, w, r)
-			}
+		case isFavicon:
+			return
+		case isRoot:
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, lackofstyle+index+endofstyle)
+		case isAdd:
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, lackofstyle+inputtextform+endofstyle)
+		case isAddfile:
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, lackofstyle+inputfileform+endofstyle)
 		default:
-			http.NotFound(w, r)
+			{
+				http.NotFound(w, r)
+				fmt.Fprintf(w, "You are likely to be eaten by a grue")
+			}
 		}
+
+	case "POST":
+		//I could lock on adding things to the map, but i'm not gonna.
+		//If randomString() collides, sorry...?
+		switch {
+		case isAdd:
+			for k, v := range r.Form {
+				if k == "secret" {
+					v := strings.Join(v, "")
+					secret := NewSecret()
+					secrets[secret.Id] = secret
+					secrets[secret.Id].Data = []byte(v)
+
+					shareable(secret.Id, w, r)
+				} else {
+					fmt.Fprintf(w, "no secret provided.")
+				}
+			}
+		case isAddfile:
+			f, h, _ := r.FormFile("file")
+			defer f.Close()
+			d := new(bytes.Buffer)
+
+			//Limit the size of uploads. We aren't made of money.
+			mb := http.MaxBytesReader(w, f, MAXUPLOADSIZE)
+			_, err := io.Copy(d, mb)
+			if err != nil {
+				fmt.Fprintf(w, lackofstyle+uploaderror+endofstyle)
+				return
+			}
+			secret := NewSecret()
+			secrets[secret.Id] = secret
+			secrets[secret.Id].Type = "file"
+			secrets[secret.Id].Data = d.Bytes()
+			secrets[secret.Id].Name = h.Filename
+
+			shareable(secret.Id, w, r)
+		}
+	default:
+		http.NotFound(w, r)
 	}
 }
 
