@@ -21,8 +21,9 @@ It is a web service that allows you to upload text snippets or files and generat
 
 A. Alternatively, just run the command `docker pull invocaops/flashpaper`.
 
+B. Get ahold of a TLS certificate. go-flashpaper requires TLS, because we are not savages.
 
-B. Then run `docker pull --rm -p 8443:8443 invocaops/flashpaper`.
+C. Then run `docker run --rm -p 8443:8443 invocaops/flashpaper`.
 
 ## FAQ
 
