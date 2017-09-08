@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -53,85 +54,93 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 
 	path := r.URL.Path[1:]
 	r.ParseForm()
-
+	isShare, _ := regexp.MatchString("^share/", path)
 	//prevent slackbot from exploding links when posted to a channel
 	if strings.Contains(r.UserAgent(), "Slack") {
 		http.NotFound(w, r)
 		return
 	}
-
-	switch r.Method {
-	case "GET":
-		switch path {
-		case "favicon.ico":
-			return
-		case "":
-			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, lackofstyle+index+endofstyle)
-		case "add":
-			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, lackofstyle+inputtextform+endofstyle)
-		case "addfile":
-			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, lackofstyle+inputfileform+endofstyle)
-		default:
-			sec, ok := popSecret(secrets, path)
-			if ok {
-				defer sec.Wipe()
-				//If this is a file, set to octet-stream to force download
-				//Otherwise just print the data
-				if sec.Type == "file" {
-					w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", sec.Name))
-					w.Header().Set("Content-Type", "application/octet-stream")
-					w.Write(sec.Data)
-				} else {
-					fmt.Fprintf(w, "%s", sec.Data)
-				}
+	if isShare {
+		newPath := path[6:len(path)]
+		sec, ok := popSecret(secrets, newPath)
+		if ok {
+			defer sec.Wipe()
+			//If this is a file, set to octet-stream to force download
+			//Otherwise just print the data
+			if sec.Type == "file" {
+				w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", sec.Name))
+				w.Header().Set("Content-Type", "application/octet-stream")
+				w.Write(sec.Data)
 			} else {
-				http.NotFound(w, r)
-				fmt.Fprintf(w, "You are likely to be eaten by a grue")
+				fmt.Fprintf(w, "%s", sec.Data)
 			}
+		} else {
+			http.NotFound(w, r)
+			fmt.Fprintf(w, "You are likely to be eaten by a grue")
 		}
-
-	case "POST":
-		//I could lock on adding things to the map, but i'm not gonna.
-		//If randomString() collides, sorry...?
-		switch path {
-		case "add":
-			for k, v := range r.Form {
-				if k == "secret" {
-					v := strings.Join(v, "")
-					secret := NewSecret()
-					secrets[secret.Id] = secret
-					secrets[secret.Id].Data = []byte(v)
-
-					shareable(secret.Id, w, r)
-				} else {
-					fmt.Fprintf(w, "no secret provided.")
+	} else {
+		switch r.Method {
+		case "GET":
+			switch path {
+			case "favicon.ico":
+				return
+			case "":
+				w.Header().Set("Content-Type", "text/html")
+				fmt.Fprintf(w, lackofstyle+index+endofstyle)
+			case "add":
+				w.Header().Set("Content-Type", "text/html")
+				fmt.Fprintf(w, lackofstyle+inputtextform+endofstyle)
+			case "addfile":
+				w.Header().Set("Content-Type", "text/html")
+				fmt.Fprintf(w, lackofstyle+inputfileform+endofstyle)
+			default:
+				{
+					fmt.Printf("Default path...")
+					http.NotFound(w, r)
+					fmt.Fprintf(w, "You are likely to be eaten by a grue")
 				}
 			}
-		case "addfile":
-			f, h, _ := r.FormFile("file")
-			defer f.Close()
-			d := new(bytes.Buffer)
 
-			//Limit the size of uploads. We aren't made of money.
-			mb := http.MaxBytesReader(w, f, MAXUPLOADSIZE)
-			_, err := io.Copy(d, mb)
-			if err != nil {
-				fmt.Fprintf(w, lackofstyle+uploaderror+endofstyle)
-				return
+		case "POST":
+			//I could lock on adding things to the map, but i'm not gonna.
+			//If randomString() collides, sorry...?
+			switch path {
+			case "add":
+				for k, v := range r.Form {
+					if k == "secret" {
+						v := strings.Join(v, "")
+						secret := NewSecret()
+						secrets[secret.Id] = secret
+						secrets[secret.Id].Data = []byte(v)
+
+						shareable(secret.Id, w, r)
+					} else {
+						fmt.Fprintf(w, "no secret provided.")
+					}
+				}
+			case "addfile":
+				f, h, _ := r.FormFile("file")
+				defer f.Close()
+				d := new(bytes.Buffer)
+
+				//Limit the size of uploads. We aren't made of money.
+				mb := http.MaxBytesReader(w, f, MAXUPLOADSIZE)
+				_, err := io.Copy(d, mb)
+				if err != nil {
+					fmt.Fprintf(w, lackofstyle+uploaderror+endofstyle)
+					return
+				}
+				secret := NewSecret()
+				secrets[secret.Id] = secret
+				secrets[secret.Id].Type = "file"
+				secrets[secret.Id].Data = d.Bytes()
+				secrets[secret.Id].Name = h.Filename
+
+				shareable(secret.Id, w, r)
 			}
-			secret := NewSecret()
-			secrets[secret.Id] = secret
-			secrets[secret.Id].Type = "file"
-			secrets[secret.Id].Data = d.Bytes()
-			secrets[secret.Id].Name = h.Filename
-
-			shareable(secret.Id, w, r)
+		default:
+			http.NotFound(w, r)
 		}
-	default:
-		http.NotFound(w, r)
 	}
 }
 
@@ -150,7 +159,7 @@ func shareable(id string, w http.ResponseWriter, r *http.Request) {
 func randPathString() (string, error) {
 	rb := make([]byte, 32)
 	_, err := rand.Read(rb)
-	s := "share/" + fmt.Sprintf("%x", rb)
+	s := fmt.Sprintf("%x", rb)
 	if err == nil {
 		return s, nil
 	}
@@ -254,7 +263,7 @@ const inputfileform = `
 
 const shareform = `
 share this link (do not click!):<br><br>
-<h2>%s://%s/%s</h2>
+<h2>%s://%s/share/%s</h2>
 <br><br>THIS LINK WILL EXPIRE IN %f HOURS<br><br>
 <a href="/">Share Another Secret</a>
 `
