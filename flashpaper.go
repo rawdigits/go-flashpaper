@@ -54,6 +54,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 
 	path := r.URL.Path[1:]
 	r.ParseForm()
+
 	isShare, _ := regexp.MatchString("^share/", path)
 	isRoot, _ := regexp.MatchString("^$", path)
 	isAdd, _ := regexp.MatchString("^add$", path)
@@ -69,8 +70,8 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		switch {
 		case isShare:
-			newPath := path[6:len(path)]
-			sec, ok := popSecret(secrets, newPath)
+			secretID := path[6:]
+			sec, ok := popSecret(secrets, secretID)
 			if ok {
 				defer sec.Wipe()
 				//If this is a file, set to octet-stream to force download
