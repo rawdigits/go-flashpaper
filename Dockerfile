@@ -9,7 +9,6 @@ FROM alpine
 WORKDIR /
 
 COPY --from=build /go/src/github.com/Invoca/go-flashpaper/go-flashpaper .
-COPY ./entrypoint.sh .
 
 EXPOSE 8443
 RUN go-flashpaper
