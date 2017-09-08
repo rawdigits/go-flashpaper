@@ -11,4 +11,4 @@ WORKDIR /
 COPY --from=build /go/src/github.com/Invoca/go-flashpaper/go-flashpaper .
 
 EXPOSE 8443
-RUN go-flashpaper
+RUN ./go-flashpaper
