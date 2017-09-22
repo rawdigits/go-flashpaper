@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -54,28 +55,23 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path[1:]
 	r.ParseForm()
 
+	isShare, _ := regexp.MatchString("^share/", path)
+	isRoot, _ := regexp.MatchString("^$", path)
+	isAdd, _ := regexp.MatchString("^add$", path)
+	isAddfile, _ := regexp.MatchString("^addfile$", path)
+	isFavicon, _ := regexp.MatchString("^favicon.ico$", path)
+
 	//prevent slackbot from exploding links when posted to a channel
 	if strings.Contains(r.UserAgent(), "Slack") {
 		http.NotFound(w, r)
 		return
 	}
-
 	switch r.Method {
 	case "GET":
-		switch path {
-		case "favicon.ico":
-			return
-		case "":
-			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, lackofstyle+index+endofstyle)
-		case "add":
-			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, lackofstyle+inputtextform+endofstyle)
-		case "addfile":
-			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, lackofstyle+inputfileform+endofstyle)
-		default:
-			sec, ok := popSecret(secrets, path)
+		switch {
+		case isShare:
+			secretID := path[6:]
+			sec, ok := popSecret(secrets, secretID)
 			if ok {
 				defer sec.Wipe()
 				//If this is a file, set to octet-stream to force download
@@ -91,13 +87,29 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 				http.NotFound(w, r)
 				fmt.Fprintf(w, "You are likely to be eaten by a grue")
 			}
+		case isFavicon:
+			return
+		case isRoot:
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, lackofstyle+index+endofstyle)
+		case isAdd:
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, lackofstyle+inputtextform+endofstyle)
+		case isAddfile:
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, lackofstyle+inputfileform+endofstyle)
+		default:
+			{
+				http.NotFound(w, r)
+				fmt.Fprintf(w, "You are likely to be eaten by a grue")
+			}
 		}
 
 	case "POST":
 		//I could lock on adding things to the map, but i'm not gonna.
 		//If randomString() collides, sorry...?
-		switch path {
-		case "add":
+		switch {
+		case isAdd:
 			for k, v := range r.Form {
 				if k == "secret" {
 					v := strings.Join(v, "")
@@ -110,7 +122,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 					fmt.Fprintf(w, "no secret provided.")
 				}
 			}
-		case "addfile":
+		case isAddfile:
 			f, h, _ := r.FormFile("file")
 			defer f.Close()
 			d := new(bytes.Buffer)
@@ -150,7 +162,7 @@ func shareable(id string, w http.ResponseWriter, r *http.Request) {
 func randPathString() (string, error) {
 	rb := make([]byte, 32)
 	_, err := rand.Read(rb)
-	s := "share/" + fmt.Sprintf("%x", rb)
+	s := fmt.Sprintf("%x", rb)
 	if err == nil {
 		return s, nil
 	}
@@ -254,7 +266,7 @@ const inputfileform = `
 
 const shareform = `
 share this link (do not click!):<br><br>
-<h2>%s://%s/%s</h2>
+<h2>%s://%s/share/%s</h2>
 <br><br>THIS LINK WILL EXPIRE IN %f HOURS<br><br>
 <a href="/">Share Another Secret</a>
 `
