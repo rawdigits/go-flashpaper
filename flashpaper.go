@@ -73,6 +73,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 			secretID := path[6:]
 			sec, ok := popSecret(secrets, secretID)
 			if ok {
+				log.Print(fmt.Sprintf("%s ->> %s\n", secretID, r.Header))
 				defer sec.Wipe()
 				//If this is a file, set to octet-stream to force download
 				//Otherwise just print the data
@@ -85,7 +86,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				http.NotFound(w, r)
-				fmt.Fprintf(w, "You are likely to be eaten by a grue")
+				fmt.Fprintf(w, "The requested paper has expired or viewed by someone else.")
 			}
 		case isFavicon:
 			return
@@ -101,7 +102,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			{
 				http.NotFound(w, r)
-				fmt.Fprintf(w, "You are likely to be eaten by a grue")
+				fmt.Fprintf(w, "The requested paper has expired or viewed by someone else.")
 			}
 		}
 
