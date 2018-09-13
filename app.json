@@ -2,5 +2,11 @@
   "name": "go-flashpaper on Heroku",
   "description": "Runs rawdigits/go-flashpaper on Heroku",
   "repository": "https://github.com/staaldraad/go-flashpaper",
-  "keywords": ["flashpaper", "pew"]
+  "keywords": ["flashpaper", "pew"],
+  "env": {
+      "HEROKU":{
+        "description": "If we are running on Heroku",
+        "value": "TRUE"
+      }
+  }
 }

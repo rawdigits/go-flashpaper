@@ -213,16 +213,14 @@ func main() {
 	//run this without TLS if you have taken leave of your senses.
 	//err := http.ListenAndServe(":8080", nil)
     PORT := os.Getenv("PORT")
-    heroku := true
 
     if PORT == "" {
         PORT = "8443"
-        heroku = false
     }
 
     var err error
 
-    if heroku {
+    if os.Getenv("HEROKU") == "TRUE" {
 	    err = http.ListenAndServe(fmt.Sprintf(":%s",PORT), nil)
     } else {
         err = http.ListenAndServeTLS(fmt.Sprintf(":%s",PORT), "server.crt", "server.key", nil)
