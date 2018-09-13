@@ -140,7 +140,7 @@ func shareable(id string, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	proto := "https"
-	if r.TLS == nil {
+	if r.TLS == nil && os.Getenv("HEROKU") != "TRUE" {
 		proto = "http"
 	}
 	ret := fmt.Sprintf(lackofstyle+shareform+endofstyle, proto, r.Host, id, MAXHOURSTOKEEP)
