@@ -1,0 +1,6 @@
+{
+  "name": "go-flashpaper on Heroku",
+  "description": "Runs rawdigits/go-flashpaper on Heroku",
+  "repository": "https://github.com/staaldraad/go-flashpaper",
+  "keywords": ["flashpaper", "pew"]
+}
