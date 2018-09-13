@@ -213,12 +213,19 @@ func main() {
 	//run this without TLS if you have taken leave of your senses.
 	//err := http.ListenAndServe(":8080", nil)
     PORT := os.Getenv("PORT")
+
     if PORT == "" {
         PORT = "8443"
     }
 
-    //err := http.ListenAndServeTLS(fmt.Sprintf(":%d",PORT), "server.crt", "server.key", nil)
-	err := http.ListenAndServe(fmt.Sprintf(":%s",PORT), nil)
+    var err error
+
+    if os.Getenv("HEROKU") == "TRUE" {
+	    err = http.ListenAndServe(fmt.Sprintf(":%s",PORT), nil)
+    } else {
+        err = http.ListenAndServeTLS(fmt.Sprintf(":%s",PORT), "server.crt", "server.key", nil)
+    }
+
 	if err != nil {
 		fmt.Printf("main(): %s\n", err)
 		fmt.Printf("Errors usually mean you don't have the required server.crt or server.key files.\n")
