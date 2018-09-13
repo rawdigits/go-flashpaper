@@ -1,1 +1,1 @@
-web: flashpaper 
+web: go-flashpaper 
