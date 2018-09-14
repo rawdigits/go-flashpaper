@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -139,7 +140,7 @@ func shareable(id string, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	proto := "https"
-	if r.TLS == nil {
+	if r.TLS == nil && os.Getenv("HEROKU") != "TRUE" {
 		proto = "http"
 	}
 	ret := fmt.Sprintf(lackofstyle+shareform+endofstyle, proto, r.Host, id, MAXHOURSTOKEEP)
@@ -211,7 +212,20 @@ func main() {
 	//You can uncomment the non TLS version of ListenAndServe and
 	//run this without TLS if you have taken leave of your senses.
 	//err := http.ListenAndServe(":8080", nil)
-	err := http.ListenAndServeTLS(":8443", "server.crt", "server.key", nil)
+	PORT := os.Getenv("PORT")
+
+	if PORT == "" {
+		PORT = "8443"
+	}
+
+	var err error
+
+	if os.Getenv("HEROKU") == "TRUE" {
+		err = http.ListenAndServe(fmt.Sprintf(":%s", PORT), nil)
+	} else {
+		err = http.ListenAndServeTLS(fmt.Sprintf(":%s", PORT), "server.crt", "server.key", nil)
+	}
+
 	if err != nil {
 		fmt.Printf("main(): %s\n", err)
 		fmt.Printf("Errors usually mean you don't have the required server.crt or server.key files.\n")
