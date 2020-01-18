@@ -1,0 +1,22 @@
+[Unit]
+Description=go-flashpaper
+
+[Service]
+Type=simple
+User=flashpaper
+Restart=on-failure
+RestartSec=60
+WorkingDirectory=#fill in
+ExecStart=#fill in
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/log/go-flashpaper
+ExecStartPre=/bin/chown syslog:adm /var/log/go-flashpaper
+ExecStartPre=/bin/chmod 755 /var/log/go-flashpaper
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=go-flashpaper
+
+[Install]
+WantedBy=multi-user.target
