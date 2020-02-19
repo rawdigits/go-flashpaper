@@ -96,7 +96,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		case "":
 			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, lackofstyle+index+endofstyle)
+			fmt.Fprint(w, lackofstyle+index+endofstyle)
 		case "add":
 			w.Header().Set("Content-Type", "text/html")
 
@@ -106,7 +106,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				ret = fmt.Sprintf(lackofstyle+inputtextform+endofstyle, "")
 			}
-			fmt.Fprintf(w, ret)
+			fmt.Fprint(w, ret)
 		case "addfile":
 			w.Header().Set("Content-Type", "text/html")
 
@@ -116,14 +116,14 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				ret = fmt.Sprintf(lackofstyle+inputfileform+endofstyle, "")
 			}
-			fmt.Fprintf(w, ret)
+			fmt.Fprint(w, ret)
 		case "help":
 			w.Header().Set("Content-Type", "text/html")
-			fmt.Fprintf(w, lackofstyle+help+endofstyle)
+			fmt.Fprint(w, lackofstyle+help+endofstyle)
 		case "usedlink":
 			w.Header().Set("Content-Type", "text/html")
 			ret := fmt.Sprintf(lackofstyle+display+endofstyle, "This link has already been used.")
-			fmt.Fprintf(w, ret)
+			fmt.Fprint(w, ret)
 		default:
 			// Access the secret without popping it.
 			val, ok := secrets[path]
@@ -158,7 +158,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 					defer sec.Wipe()
 
 					ret := fmt.Sprintf(lackofstyle+display+endofstyle, html.EscapeString(string(sec.Data)))
-					fmt.Fprintf(w, ret)
+					fmt.Fprint(w, ret)
 				}
 			} else {
 				// When setting up the token on a live server, please generate a new token that redirects to /usedlink.
@@ -167,7 +167,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 				} else {
 					w.Header().Set("Content-Type", "text/html")
 					ret := fmt.Sprintf(lackofstyle+display+endofstyle, "This link has already been used.")
-					fmt.Fprintf(w, ret)
+					fmt.Fprint(w, ret)
 				}
 			}
 		}
@@ -195,7 +195,7 @@ func secretHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				shareable(secret.ID, w, r)
 			} else {
-				fmt.Fprintf(w, "no secret provided.")
+				fmt.Fprint(w, "no secret provided.")
 			}
 
 		case "addfile":
@@ -241,7 +241,7 @@ func shareable(id string, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ret := fmt.Sprintf(lackofstyle+shareform+endofstyle, int(MAXHOURSTOKEEP), proto, r.Host, id)
-	fmt.Fprintf(w, ret)
+	fmt.Fprint(w, ret)
 }
 
 //This generates a (crypto) random 32 byte string for the path
@@ -413,7 +413,7 @@ func main() {
 	certManager := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(""), //Your domain here
-		Cache:      autocert.DirCache("certs"),                             //Folder for storing certificates
+		Cache:      autocert.DirCache("certs"), //Folder for storing certificates
 	}
 
 	//launch the janitor to remove secrets that haven't been retrieved
